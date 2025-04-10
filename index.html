@@ -1,1 +1,82 @@
-I am sudha 
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Realtime DB Example</title>
+  <style>
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Submit New Data</h2>
+  <form id="dataForm">
+    <label>Name: <input type="text" id="name" required></label><br><br>
+    <label>Age: <input type="number" id="age" required></label><br><br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Stored Data</h2>
+  <table id="dataTable">
+    <thead>
+      <tr><th>Name</th><th>Age</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const dbURL = 'https://storemydata-46431-default-rtdb.asia-southeast1.firebasedatabase.app/items';
+
+    // Submit form data to Firebase
+    document.getElementById('dataForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const age = document.getElementById('age').value;
+
+      const newData = { name, age };
+
+      fetch(`${dbURL}.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Data saved:', data);
+        document.getElementById('dataForm').reset();
+        fetchData(); // Refresh table
+      })
+      .catch(error => console.error('Error:', error));
+    });
+
+    // Fetch and display data in table
+    function fetchData() {
+      fetch(`${dbURL}.json`)
+        .then(response => response.json())
+        .then(data => {
+          const tbody = document.getElementById('dataTable').querySelector('tbody');
+          tbody.innerHTML = ''; // Clear previous rows
+
+          if (data) {
+            Object.values(data).forEach(entry => {
+              const row = `<tr><td>${entry.name}</td><td>${entry.age}</td></tr>`;
+              tbody.innerHTML += row;
+            });
+          } else {
+            tbody.innerHTML = '<tr><td colspan="2">No data found</td></tr>';
+          }
+        })
+        .catch(error => {
+          console.error('Fetch error:', error);
+        });
+    }
+
+    // Load data on page load
+    window.onload = fetchData;
+  </script>
+</body>
+</html>
